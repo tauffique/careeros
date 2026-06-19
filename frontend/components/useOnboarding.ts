@@ -22,6 +22,9 @@ export function useOnboarding() {
         });
 
         if (check.status === 404) {
+          // New user — clear any leftover session data from previous user
+          try { sessionStorage.clear(); } catch {}
+
           // Create user in DB
           await fetch(
             `${BACKEND}/users/me?email=${encodeURIComponent(user.primaryEmailAddress?.emailAddress || "")}`,
@@ -30,6 +33,7 @@ export function useOnboarding() {
               headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
               body: JSON.stringify({
                 full_name: user.fullName || "",
+                email: user.primaryEmailAddress?.emailAddress || "",
                 ui_language: "en",
                 output_language: "English",
               }),
@@ -38,7 +42,7 @@ export function useOnboarding() {
         }
         setReady(true);
       } catch {
-        setReady(true); // don't block UI on error
+        setReady(true);
       }
     }
 
