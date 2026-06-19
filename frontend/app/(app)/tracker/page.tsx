@@ -40,6 +40,8 @@ export default function Tracker() {
     });
     setApps(prev => prev.filter(a => a.id !== id));
   }
+
+  const filtered = filter === "all" ? apps : apps.filter(a => a.status === filter);
   const counts = STATUSES.reduce((acc, s) => ({ ...acc, [s]: apps.filter(a => a.status === s).length }), {} as Record<string,number>);
 
   return (
@@ -48,21 +50,16 @@ export default function Tracker() {
         <h1 style={{ fontSize: "22px", fontWeight: "700", color: C.slate, margin: 0 }}>Application Tracker</h1>
         <p style={{ color: C.mid, fontSize: "13px", margin: "4px 0 0" }}>{apps.length} total applications</p>
       </div>
-
-      {/* Filter tabs */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "20px", flexWrap: "wrap" }}>
         {["all", ...STATUSES].map(s => (
           <button key={s} onClick={() => setFilter(s)} style={{
             padding: "6px 14px", borderRadius: "20px", fontSize: "12px", fontWeight: "600", cursor: "pointer", border: "none",
-            background: filter === s ? C.indigo : "#F1F5F9",
-            color: filter === s ? "#fff" : C.mid,
+            background: filter === s ? C.indigo : "#F1F5F9", color: filter === s ? "#fff" : C.mid,
           }}>
             {s.charAt(0).toUpperCase() + s.slice(1)} {s === "all" ? `(${apps.length})` : `(${counts[s] || 0})`}
           </button>
         ))}
       </div>
-
-      {/* Table */}
       <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 80px 80px 120px 130px 60px", padding: "10px 20px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
           {["Role", "Company", "Before", "After", "Language", "Status", ""].map(h => (
