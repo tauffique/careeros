@@ -303,11 +303,6 @@ export default function ApplyPage() {
                 <button onClick={() => copy(activeTab === "cv" ? cvLatex : clLatex, activeTab)} style={{ fontSize: "12px", color: copied === activeTab ? C.green : C.mid, background: "none", border: "none", cursor: "pointer", fontWeight: "600" }}>
                   {copied === activeTab ? "Copied ✓" : "Copy LaTeX →"}
                 </button>
-                <button onClick={() => downloadPDF(activeTab === "cv" ? cvLatex : clLatex, activeTab === "cv" ? "CV_karriereos" : "CoverLetter_karriereos")}
-                  disabled={pdfLoading}
-                  style={{ fontSize: "12px", padding: "5px 12px", background: pdfLoading ? C.border : C.indigo, color: pdfLoading ? C.light : "#fff", border: "none", borderRadius: "6px", cursor: pdfLoading ? "not-allowed" : "pointer", fontWeight: "600" }}>
-                  {pdfLoading ? "Compiling..." : "⬇ Download PDF"}
-                </button>
                 <a href="https://www.overleaf.com/project" target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: C.mid, textDecoration: "none" }}>Open Overleaf ↗</a>
               </div>
               <pre style={{ fontSize: "11px", color: C.mid, whiteSpace: "pre-wrap", lineHeight: "1.5", fontFamily: "monospace", margin: 0, background: C.bg, padding: "16px", borderRadius: "8px", border: `1px solid ${C.border}`, maxHeight: "360px", overflowY: "auto" }}>
