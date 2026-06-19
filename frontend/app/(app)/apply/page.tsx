@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@clerk/nextjs";
 
 const C = {
@@ -24,9 +24,19 @@ const inp = {
 
 type Stage = "input" | "ats_before" | "matched" | "generated" | "ats_after";
 
+function loadSession() {
+  try {
+    const s = sessionStorage.getItem("apply_state");
+    return s ? JSON.parse(s) : null;
+  } catch { return null; }
+}
+
+function saveSession(state: any) {
+  try { sessionStorage.setItem("apply_state", JSON.stringify(state)); } catch {}
+}
+
 function ATSBar({ score, label }: { score: number; label: string }) {
   const color = score >= 70 ? C.green : score >= 50 ? C.amber : C.red;
-  const bg = score >= 70 ? C.greenLight : score >= 50 ? C.amberLight : C.redLight;
   return (
     <div style={{ marginBottom: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
@@ -53,28 +63,36 @@ export default function ApplyPage() {
   const { getToken } = useAuth();
   const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+  // Restore from sessionStorage on mount
+  const saved = typeof window !== "undefined" ? loadSession() : null;
+
   // Form state
-  const [jd, setJd] = useState("");
-  const [company, setCompany] = useState("");
-  const [role, setRole] = useState("");
-  const [language, setLanguage] = useState("English");
+  const [jd, setJd] = useState(saved?.jd || "");
+  const [company, setCompany] = useState(saved?.company || "");
+  const [role, setRole] = useState(saved?.role || "");
+  const [language, setLanguage] = useState(saved?.language || "English");
 
   // Flow state
-  const [stage, setStage] = useState<Stage>("input");
+  const [stage, setStage] = useState<Stage>((saved?.stage as Stage) || "input");
   const [loading, setLoading] = useState(false);
   const [genLoading, setGenLoading] = useState<"cv" | "cl" | null>(null);
   const [error, setError] = useState("");
 
   // Data state
-  const [applicationId, setApplicationId] = useState("");
-  const [atsBefore, setAtsBefore] = useState<any>(null);
-  const [matchResult, setMatchResult] = useState<any>(null);
-  const [cvLatex, setCvLatex] = useState("");
-  const [clLatex, setClLatex] = useState("");
-  const [atsAfter, setAtsAfter] = useState<any>(null);
+  const [applicationId, setApplicationId] = useState(saved?.applicationId || "");
+  const [atsBefore, setAtsBefore] = useState<any>(saved?.atsBefore || null);
+  const [matchResult, setMatchResult] = useState<any>(saved?.matchResult || null);
+  const [cvLatex, setCvLatex] = useState(saved?.cvLatex || "");
+  const [clLatex, setClLatex] = useState(saved?.clLatex || "");
+  const [atsAfter, setAtsAfter] = useState<any>(saved?.atsAfter || null);
   const [activeTab, setActiveTab] = useState<"cv" | "cl">("cv");
   const [copied, setCopied] = useState("");
   const [downloading, setDownloading] = useState(false);
+
+  // Save state to sessionStorage whenever it changes
+  useEffect(() => {
+    saveSession({ jd, company, role, language, stage, applicationId, atsBefore, matchResult, cvLatex, clLatex, atsAfter });
+  }, [jd, company, role, language, stage, applicationId, atsBefore, matchResult, cvLatex, clLatex, atsAfter]);
 
   async function authFetch(path: string, body: any) {
     const token = await getToken();
@@ -192,6 +210,7 @@ export default function ApplyPage() {
     setStage("input"); setApplicationId(""); setAtsBefore(null);
     setMatchResult(null); setCvLatex(""); setClLatex("");
     setAtsAfter(null); setError("");
+    try { sessionStorage.removeItem("apply_state"); } catch {}
   }
 
   const scoreDelta = atsBefore && atsAfter ? atsAfter.score - atsBefore.score : null;

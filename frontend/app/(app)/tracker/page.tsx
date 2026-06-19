@@ -32,7 +32,14 @@ export default function Tracker() {
     setApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
   }
 
-  const filtered = filter === "all" ? apps : apps.filter(a => a.status === filter);
+  async function deleteApp(id: string) {
+    if (!confirm("Delete this application?")) return;
+    const token = await getToken();
+    await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/${id}`, {
+      method: "DELETE", headers: { Authorization: `Bearer ${token}` },
+    });
+    setApps(prev => prev.filter(a => a.id !== id));
+  }
   const counts = STATUSES.reduce((acc, s) => ({ ...acc, [s]: apps.filter(a => a.status === s).length }), {} as Record<string,number>);
 
   return (
@@ -57,8 +64,8 @@ export default function Tracker() {
 
       {/* Table */}
       <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", overflow: "hidden" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 80px 80px 120px 130px", padding: "10px 20px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
-          {["Role", "Company", "Before", "After", "Language", "Status"].map(h => (
+        <div style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 80px 80px 120px 130px 60px", padding: "10px 20px", borderBottom: `1px solid ${C.border}`, background: C.bg }}>
+          {["Role", "Company", "Before", "After", "Language", "Status", ""].map(h => (
             <span key={h} style={{ fontSize: "10px", fontWeight: "700", color: C.light, textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</span>
           ))}
         </div>
@@ -66,7 +73,7 @@ export default function Tracker() {
           <div style={{ padding: "48px", textAlign: "center", color: C.light, fontSize: "13px" }}>No applications found.</div>
         )}
         {filtered.map(app => (
-          <div key={app.id} style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 80px 80px 120px 130px", padding: "14px 20px", borderBottom: `1px solid ${C.border}`, alignItems: "center" }}>
+          <div key={app.id} style={{ display: "grid", gridTemplateColumns: "2fr 1.5fr 80px 80px 120px 130px 60px", padding: "14px 20px", borderBottom: `1px solid ${C.border}`, alignItems: "center" }}>
             <div>
               <div style={{ fontSize: "13px", fontWeight: "600", color: C.slate }}>{app.role || "—"}</div>
               <div style={{ fontSize: "11px", color: C.mid, marginTop: "2px" }}>{app.location || ""}</div>
@@ -83,6 +90,7 @@ export default function Tracker() {
               style={{ padding: "5px 8px", border: `1px solid ${(STATUS_COLOR[app.status] || C.light)}44`, borderRadius: "6px", fontSize: "11px", fontWeight: "600", color: STATUS_COLOR[app.status] || C.light, background: (STATUS_COLOR[app.status] || C.light) + "12", cursor: "pointer", outline: "none" }}>
               {STATUSES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
             </select>
+            <button onClick={() => deleteApp(app.id)} style={{ fontSize: "11px", color: C.red, background: "none", border: "none", cursor: "pointer", padding: "4px" }}>✕</button>
           </div>
         ))}
       </div>
