@@ -9,7 +9,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt import PyJWKClient
 
-CLERK_JWKS_URL = f"https://{os.environ['CLERK_DOMAIN']}/.well-known/jwks.json"
+CLERK_DOMAIN = os.environ.get('CLERK_DOMAIN', '')
+# Production uses clerk.yourdomain.com, dev uses domain directly
+if '.' in CLERK_DOMAIN and not CLERK_DOMAIN.startswith('clerk.'):
+    CLERK_JWKS_URL = f"https://clerk.{CLERK_DOMAIN}/.well-known/jwks.json"
+else:
+    CLERK_JWKS_URL = f"https://{CLERK_DOMAIN}/.well-known/jwks.json"
 
 bearer_scheme = HTTPBearer()
 _jwks_client = None
