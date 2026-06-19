@@ -182,3 +182,14 @@ async def _get_user(clerk_id: str, db: AsyncSession) -> User:
     if not user:
         raise HTTPException(status_code=404, detail="User not found — complete onboarding first")
     return user
+
+@router.post("/me/skills")
+async def update_skills(data: dict, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Update skills_text directly."""
+    result = await db.execute(select(User).where(User.clerk_id == clerk_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.skills_text = data.get("skills_text", "")
+    await db.commit()
+    return {"status": "ok"}
