@@ -60,7 +60,7 @@ async def get_profile(clerk_id: str = Depends(get_current_user), db: AsyncSessio
             "linkedin_url": user.linkedin_url, "github_url": user.github_url,
             "portfolio_url": user.portfolio_url,
             "ui_language": user.ui_language, "output_language": user.output_language,
-            "skills_text": user.skills_text,
+            "skills_text": getattr(user, "skills_text", None),
         },
         "education": [{"id": str(e.id), "institution": e.institution, "degree": e.degree,
                        "field": e.field, "location": e.location, "start_date": e.start_date,
