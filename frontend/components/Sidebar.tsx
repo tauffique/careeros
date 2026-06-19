@@ -9,7 +9,6 @@ const NAV = [
   { href: "/apply",     label: "Apply",         icon: "✦" },
   { href: "/projects",  label: "Knowledge Base",icon: "◈" },
   { href: "/tracker",   label: "Tracker",       icon: "◎" },
-  { href: "/onboarding",label: "Profile Setup", icon: "◉" },
 ];
 
 export default function Sidebar() {

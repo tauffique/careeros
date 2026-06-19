@@ -260,20 +260,12 @@ export default function ApplyPage() {
               disabled={stage !== "input"}
               placeholder="Paste the full job description here..."
               style={{ ...inp, height: stage === "input" ? "200px" : "120px", resize: "vertical", opacity: stage !== "input" ? 0.6 : 1 } as any} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "12px" }}>
-              <div>
-                <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Company</label>
-                <input style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={company} onChange={e => setCompany(e.target.value)} placeholder="e.g. disruptive GmbH" disabled={stage !== "input"} />
-              </div>
-              <div>
-                <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Role</label>
-                <input style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={role} onChange={e => setRole(e.target.value)} placeholder="e.g. AI Engineering Intern" disabled={stage !== "input"} />
-              </div>
-              <div>
-                <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Output Language</label>
-                <select style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={language} onChange={e => setLanguage(e.target.value)} disabled={stage !== "input"}>
-                  {LANGUAGES.map(l => <option key={l}>{l}</option>)}
-                </select>
+            <div style={{ marginTop: "12px" }}>
+  <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Output Language</label>
+  <select style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1, maxWidth: "200px" }} value={language} onChange={e => setLanguage(e.target.value)} disabled={stage !== "input"}>
+    {LANGUAGES.map(l => <option key={l}>{l}</option>)}
+  </select>
+</div>
               </div>
             </div>
             {error && <div style={{ marginTop: "12px", padding: "10px 14px", background: C.redLight, border: `1px solid #FCA5A5`, borderRadius: "8px", fontSize: "12px", color: C.red }}>{error}</div>}
