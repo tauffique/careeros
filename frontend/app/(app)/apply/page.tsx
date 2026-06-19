@@ -138,46 +138,6 @@ export default function ApplyPage() {
     navigator.clipboard.writeText(text);
     setCopied(key); setTimeout(() => setCopied(""), 2000);
   }
-
-  const [pdfLoading, setPdfLoading] = useState(false);
-
-  async function downloadPDF(latex: string, filename: string) {
-    setPdfLoading(true);
-    try {
-      const token = await getToken();
-      const res = await fetch(`${BACKEND}/export/pdf`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({ latex, filename }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || "PDF compilation failed");
-      }
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = `${filename}.pdf`; a.click();
-      URL.revokeObjectURL(url);
-    } catch (e: any) {
-      // Fallback: download .tex
-      const blob = new Blob([latex], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = `${filename}.tex`; a.click();
-      URL.revokeObjectURL(url);
-      setError("PDF not available on server — downloaded .tex instead. Open in Overleaf to compile.");
-    } finally { setPdfLoading(false); }
-  }
-
-  function downloadTex(latex: string, filename: string) {
-    const blob = new Blob([latex], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url; a.download = `${filename}.tex`; a.click();
-    URL.revokeObjectURL(url);
-  }
-
   function reset() {
     setJd(""); setLanguage("English"); setStage("input");
     setApplicationId(""); setAtsBefore(null); setMatchResult(null);
