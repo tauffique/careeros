@@ -102,10 +102,10 @@ export default function KnowledgeBase() {
   // ── CV Upload ──────────────────────────────────────────────────────────────
   async function handleCVUpload(file: File) {
     if (!file || file.type !== "application/pdf") { setError("Please upload a PDF"); return; }
-    setUploading(true); setUploadMsg("Reading your CV... (10-15 seconds)"); setError(""); setSuccess("");
+    setUploading(true); setUploadMsg("Reading CV... (15-20 seconds)"); setError(""); setSuccess("");
     try {
       const base64 = await toBase64(file);
-      setUploadMsg("Extracting details with AI...");
+      setUploadMsg("Extracting with AI...");
       const res = await fetch(`${BACKEND}/try/extract-cv`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdf_base64: base64 }),
@@ -113,28 +113,35 @@ export default function KnowledgeBase() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Extraction failed");
 
-      setUploadMsg("Saving to your knowledge base...");
-
-      // Use bulk import endpoint — clears duplicates automatically
+      setUploadMsg("Saving everything in parallel...");
       const token = await getToken();
-      await fetch(`${BACKEND}/users/me/import-cv`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
 
-      // Save projects (clear existing first)
-      const existingProjects = await api("/projects/");
-      for (const p of (Array.isArray(existingProjects) ? existingProjects : [])) {
-        await api(`/projects/${p.id}`, "DELETE");
-      }
-      for (const p of (data.projects || [])) {
-        await api("/projects/", "POST", p);
-      }
+      // Run all saves in parallel — much faster than sequential
+      const existingProjects = await api("/projects/").catch(() => []);
+
+      await Promise.all([
+        // 1. Bulk import profile + education + certs (single endpoint, clears duplicates)
+        fetch(`${BACKEND}/users/me/import-cv`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        }),
+        // 2. Delete existing projects in parallel
+        ...((Array.isArray(existingProjects) ? existingProjects : []).map((p: any) =>
+          api(`/projects/${p.id}`, "DELETE").catch(() => {})
+        )),
+      ]);
+
+      // Save new projects in parallel
+      await Promise.all(
+        (data.projects || []).map((p: any) =>
+          api("/projects/", "POST", p).catch(() => {})
+        )
+      );
 
       if (data.skills?.length) setSkills(data.skills.join(", "));
 
-      setSuccess(`CV imported! Found ${data.projects?.length || 0} projects, ${data.education?.length || 0} education entries, ${data.certifications?.length || 0} certifications.`);
+      setSuccess(`✓ Imported ${data.projects?.length || 0} projects · ${data.education?.length || 0} education · ${data.certifications?.length || 0} certifications`);
       await loadAll();
     } catch (e: any) { setError(e.message); }
     finally { setUploading(false); setUploadMsg(""); }
@@ -397,10 +404,18 @@ export default function KnowledgeBase() {
               <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "32px", textAlign: "center", color: C.mid, fontSize: "13px" }}>No education added yet.</div>
             )}
             {education.map((e, i) => (
-              <div key={e.id || i} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "16px 20px" }}>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: C.slate }}>{e.institution}</div>
-                <div style={{ fontSize: "12px", color: C.mid, marginTop: "4px" }}>{e.degree} {e.field} · {e.location}</div>
-                <div style={{ fontSize: "11px", color: C.light, marginTop: "2px" }}>{e.start_date} – {e.end_date}</div>
+              <div key={e.id || i} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: "700", color: C.slate }}>{e.institution}</div>
+                  <div style={{ fontSize: "12px", color: C.mid, marginTop: "4px" }}>{e.degree} {e.field} · {e.location}</div>
+                  <div style={{ fontSize: "11px", color: C.light, marginTop: "2px" }}>{e.start_date} – {e.end_date}</div>
+                </div>
+                {e.id && (
+                  <button onClick={async () => {
+                    try { await api(`/users/me/education/${e.id}`, "DELETE"); await loadAll(); }
+                    catch (err: any) { setError(err.message); }
+                  }} style={{ ...btn(false, true), fontSize: "12px", padding: "5px 10px", flexShrink: 0 }}>Remove</button>
+                )}
               </div>
             ))}
           </div>
@@ -462,9 +477,17 @@ export default function KnowledgeBase() {
               <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "32px", textAlign: "center", color: C.mid, fontSize: "13px" }}>No certifications added yet.</div>
             )}
             {certs.map((c, i) => (
-              <div key={c.id || i} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "16px 20px" }}>
-                <div style={{ fontSize: "13px", fontWeight: "700", color: C.slate }}>{c.name}</div>
-                <div style={{ fontSize: "12px", color: C.mid, marginTop: "4px" }}>{c.issuer} · {c.date_obtained}</div>
+              <div key={c.id || i} style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: "700", color: C.slate }}>{c.name}</div>
+                  <div style={{ fontSize: "12px", color: C.mid, marginTop: "4px" }}>{c.issuer} · {c.date_obtained}</div>
+                </div>
+                {c.id && (
+                  <button onClick={async () => {
+                    try { await api(`/users/me/certifications/${c.id}`, "DELETE"); await loadAll(); }
+                    catch (err: any) { setError(err.message); }
+                  }} style={{ ...btn(false, true), fontSize: "12px", padding: "5px 10px", flexShrink: 0 }}>Remove</button>
+                )}
               </div>
             ))}
           </div>

@@ -103,6 +103,77 @@ async def add_certification(cert: CertificationCreate, clerk_id: str = Depends(g
     return {"id": str(record.id)}
 
 
+from sqlalchemy import delete as sql_delete
+
+@router.post("/me/import-cv")
+async def import_cv(data: dict, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Bulk import from CV upload — clears existing education and certs first to avoid duplicates."""
+    result = await db.execute(select(User).where(User.clerk_id == clerk_id))
+    user = result.scalar_one_or_none()
+
+    # Create user if doesn't exist
+    if not user:
+        user = User(
+            clerk_id=clerk_id,
+            email=data.get("email", ""),
+            full_name=data.get("full_name", ""),
+        )
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
+    # Update profile
+    for field in ["full_name", "email", "phone", "address", "linkedin_url", "github_url", "portfolio_url"]:
+        if data.get(field):
+            setattr(user, field, data[field])
+
+    # Clear existing education and certs to avoid duplicates
+    await db.execute(sql_delete(Education).where(Education.user_id == user.id))
+    await db.execute(sql_delete(Certification).where(Certification.user_id == user.id))
+
+    # Add fresh education
+    for i, e in enumerate(data.get("education", [])):
+        db.add(Education(
+            user_id=user.id,
+            institution=e.get("institution", ""),
+            degree=e.get("degree", ""),
+            field=e.get("field", ""),
+            location=e.get("location", ""),
+            start_date=e.get("start_date", ""),
+            end_date=e.get("end_date", ""),
+            display_order=i,
+        ))
+
+    # Add fresh certifications
+    for i, c in enumerate(data.get("certifications", [])):
+        db.add(Certification(
+            user_id=user.id,
+            name=c.get("name", ""),
+            issuer=c.get("issuer", ""),
+            date_obtained=c.get("date_obtained", ""),
+            display_order=i,
+        ))
+
+    await db.commit()
+    return {"status": "ok", "user_id": str(user.id)}
+
+
+@router.delete("/me/education/{edu_id}")
+async def delete_education(edu_id: str, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user = await _get_user(clerk_id, db)
+    await db.execute(sql_delete(Education).where(Education.id == edu_id, Education.user_id == user.id))
+    await db.commit()
+    return {"status": "deleted"}
+
+
+@router.delete("/me/certifications/{cert_id}")
+async def delete_certification(cert_id: str, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user = await _get_user(clerk_id, db)
+    await db.execute(sql_delete(Certification).where(Certification.id == cert_id, Certification.user_id == user.id))
+    await db.commit()
+    return {"status": "deleted"}
+
+
 async def _get_user(clerk_id: str, db: AsyncSession) -> User:
     result = await db.execute(select(User).where(User.clerk_id == clerk_id))
     user = result.scalar_one_or_none()
