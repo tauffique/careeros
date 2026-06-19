@@ -75,7 +75,6 @@ export default function ApplyPage() {
   const [atsAfter, setAtsAfter] = useState<any>(saved?.atsAfter || null);
   const [activeTab, setActiveTab] = useState<"cv" | "cl">("cv");
   const [copied, setCopied] = useState("");
-  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     saveSession({ jd, language, stage, applicationId, atsBefore, matchResult, cvLatex, clLatex, atsAfter });
