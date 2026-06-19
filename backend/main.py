@@ -27,3 +27,20 @@ app.include_router(try_router)
 @app.get("/")
 def root():
     return {"status": "ok", "app": "CareerOS API v1.0"}
+@app.on_event("startup")
+async def startup_reindex():
+    """On every startup, re-ingest all user projects into ChromaDB from PostgreSQL."""
+    try:
+        from db.database import AsyncSessionLocal
+        from models.models import Project
+        from sqlalchemy import select
+        from chromadb_client import upsert_project
+
+        async with AsyncSessionLocal() as db:
+            result = await db.execute(select(Project).where(Project.is_active == True))
+            projects = result.scalars().all()
+            for p in projects:
+                await upsert_project(str(p.user_id), p)
+        print(f"✅ Re-indexed {len(projects)} projects on startup")
+    except Exception as e:
+        print(f"⚠️ Startup reindex failed: {e}")
