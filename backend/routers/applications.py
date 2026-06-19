@@ -1,4 +1,6 @@
-
+"""
+routers/applications.py — Match, ATS score, generate, tracker
+"""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -119,6 +121,12 @@ async def ats_score(req: ATSRequest, clerk_id: str = Depends(get_current_user), 
     proj_result = await db.execute(select(Project).where(Project.user_id == user.id, Project.is_active == True))
     projects = proj_result.scalars().all()
     cv_text = " ".join([f"{p.title} {p.description} {' '.join(p.stack or [])}" for p in projects])
+    # Also include skills if available
+    try:
+        if user.skills_text:
+            cv_text += " " + user.skills_text
+    except Exception:
+        pass
 
     latex_text = app.generated_cv_latex or ""
     content_to_score = latex_text if req.stage == "after" and latex_text else cv_text
@@ -224,6 +232,18 @@ async def list_applications(clerk_id: str = Depends(get_current_user), db: Async
     result = await db.execute(select(Application).where(Application.user_id == user.id).order_by(Application.created_at.desc()))
     apps = result.scalars().all()
     return [_serialize(a) for a in apps]
+
+
+@router.delete("/{app_id}")
+async def delete_application(app_id: str, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    user = await _get_user(clerk_id, db)
+    result = await db.execute(select(Application).where(Application.id == app_id, Application.user_id == user.id))
+    app = result.scalar_one_or_none()
+    if not app:
+        raise HTTPException(status_code=404, detail="Not found")
+    await db.delete(app)
+    await db.commit()
+    return {"status": "deleted"}
 
 
 @router.patch("/{app_id}/status")
