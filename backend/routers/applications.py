@@ -144,8 +144,15 @@ JD: {app.jd_text[:1500]}"""}]
     )
 
     try:
-        data = json.loads(msg.content[0].text)
-    except:
+        text = msg.content[0].text.strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+            text = text.strip()
+        data = json.loads(text)
+    except Exception as e:
+        print(f"ATS JSON parse error: {e}, raw: {msg.content[0].text[:200]}")
         data = {"score": 0, "matched_keywords": [], "missing_keywords": []}
 
     if req.stage == "before":
