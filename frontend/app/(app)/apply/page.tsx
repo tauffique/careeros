@@ -75,6 +75,7 @@ export default function ApplyPage() {
   const [atsAfter, setAtsAfter] = useState<any>(saved?.atsAfter || null);
   const [activeTab, setActiveTab] = useState<"cv" | "cl">("cv");
   const [copied, setCopied] = useState("");
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     saveSession({ jd, language, stage, applicationId, atsBefore, matchResult, cvLatex, clLatex, atsAfter });
@@ -137,6 +138,35 @@ export default function ApplyPage() {
   function copy(text: string, key: string) {
     navigator.clipboard.writeText(text);
     setCopied(key); setTimeout(() => setCopied(""), 2000);
+  }
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  async function downloadPDF(latex: string, filename: string) {
+    setPdfLoading(true);
+    try {
+      // Use latexonline.cc free API to compile LaTeX to PDF
+      const formData = new FormData();
+      const blob = new Blob([latex], { type: "text/plain" });
+      formData.append("file", blob, "document.tex");
+
+      const res = await fetch("https://latexonline.cc/compile", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("PDF compilation failed");
+
+      const pdfBlob = await res.blob();
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${filename}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Fallback to .tex download if API fails
+      downloadTex(latex, filename);
+      setError("PDF compilation failed — downloaded .tex instead. Open in Overleaf to get PDF.");
+    } finally { setPdfLoading(false); }
   }
 
   function downloadTex(latex: string, filename: string) {
@@ -271,9 +301,10 @@ export default function ApplyPage() {
                 <button onClick={() => copy(activeTab === "cv" ? cvLatex : clLatex, activeTab)} style={{ fontSize: "12px", color: copied === activeTab ? C.green : C.mid, background: "none", border: "none", cursor: "pointer", fontWeight: "600" }}>
                   {copied === activeTab ? "Copied ✓" : "Copy LaTeX →"}
                 </button>
-                <button onClick={() => downloadTex(activeTab === "cv" ? cvLatex : clLatex, activeTab === "cv" ? "CV_karriereos" : "CoverLetter_karriereos")}
-                  style={{ fontSize: "12px", padding: "5px 12px", background: C.indigo, color: "#fff", border: "none", borderRadius: "6px", cursor: "pointer", fontWeight: "600" }}>
-                  ⬇ Download .tex
+                <button onClick={() => downloadPDF(activeTab === "cv" ? cvLatex : clLatex, activeTab === "cv" ? "CV_karriereos" : "CoverLetter_karriereos")}
+                  disabled={pdfLoading}
+                  style={{ fontSize: "12px", padding: "5px 12px", background: pdfLoading ? C.border : C.indigo, color: pdfLoading ? C.light : "#fff", border: "none", borderRadius: "6px", cursor: pdfLoading ? "not-allowed" : "pointer", fontWeight: "600" }}>
+                  {pdfLoading ? "Compiling..." : "⬇ Download PDF"}
                 </button>
                 <a href="https://www.overleaf.com/project" target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: C.mid, textDecoration: "none" }}>Open Overleaf ↗</a>
               </div>
