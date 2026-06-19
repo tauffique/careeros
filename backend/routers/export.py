@@ -1,7 +1,4 @@
-"""
-routers/export.py — LaTeX to PDF export (requires tectonic installed)
-Returns 503 if tectonic not available.
-"""
+
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import Response
 from pydantic import BaseModel
@@ -15,19 +12,33 @@ class ExportRequest(BaseModel):
     filename: str = "document"
 
 def compile_latex(latex: str, filename: str) -> bytes:
-    tectonic_path = shutil.which("tectonic")
-    if not tectonic_path:
-        raise HTTPException(status_code=503, detail="PDF export not available on this server.")
+    # Try pdflatex first, then tectonic
+    compiler = shutil.which("pdflatex") or shutil.which("tectonic")
+    if not compiler:
+        raise HTTPException(status_code=503, detail="LaTeX compiler not available on this server.")
+
     with tempfile.TemporaryDirectory() as tmpdir:
         tex_path = os.path.join(tmpdir, f"{filename}.tex")
-        pdf_path = os.path.join(tmpdir, f"{filename}.pdf")
         with open(tex_path, "w", encoding="utf-8") as f:
             f.write(latex)
-        result = subprocess.run(["tectonic", tex_path, "--outdir", tmpdir], capture_output=True, text=True, timeout=60)
-        if result.returncode != 0:
-            raise HTTPException(status_code=422, detail=f"Compilation error: {result.stderr[:300]}")
+
+        if "pdflatex" in compiler:
+            # Run twice for proper references
+            for _ in range(2):
+                subprocess.run(
+                    ["pdflatex", "-interaction=nonstopmode", "-output-directory", tmpdir, tex_path],
+                    capture_output=True, timeout=60
+                )
+        else:
+            subprocess.run(
+                ["tectonic", tex_path, "--outdir", tmpdir],
+                capture_output=True, timeout=60
+            )
+
+        pdf_path = os.path.join(tmpdir, f"{filename}.pdf")
         if not os.path.exists(pdf_path):
-            raise HTTPException(status_code=500, detail="PDF not generated")
+            raise HTTPException(status_code=422, detail="PDF not generated — check LaTeX syntax.")
+
         with open(pdf_path, "rb") as f:
             return f.read()
 
