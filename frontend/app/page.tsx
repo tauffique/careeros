@@ -76,7 +76,7 @@ export default function Home() {
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(248,250,252,0.9)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.border}`, padding: "0 40px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div style={{ width: "28px", height: "28px", background: C.indigo, borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "14px", fontWeight: "800" }}>C</div>
-          <span style={{ fontSize: "15px", fontWeight: "700", color: C.slate }}>CareerOS</span>
+          <span style={{ fontSize: "15px", fontWeight: "700", color: C.slate }}>KarriereOS</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <a href="#features" style={{ fontSize: "13px", color: C.mid, textDecoration: "none", padding: "6px 12px" }}>Features</a>
@@ -94,14 +94,14 @@ export default function Home() {
       {/* ── HERO ── */}
       <section style={{ maxWidth: "860px", margin: "0 auto", padding: "80px 40px 60px", textAlign: "center" }}>
         <div style={{ display: "inline-block", background: C.indigoLight, color: C.indigo, fontSize: "11px", fontWeight: "700", padding: "5px 14px", borderRadius: "20px", letterSpacing: "0.08em", marginBottom: "24px" }}>
-          AI-POWERED JOB APPLICATION PLATFORM
+          RAG-POWERED JOB APPLICATION PLATFORM
         </div>
         <h1 style={{ fontSize: "52px", fontWeight: "800", color: C.slate, margin: "0 0 20px", lineHeight: "1.15", letterSpacing: "-1px" }}>
           Your CV, tailored to every<br />
           <span style={{ color: C.indigo }}>job description.</span>
         </h1>
         <p style={{ fontSize: "17px", color: C.mid, margin: "0 0 36px", lineHeight: "1.7", maxWidth: "600px", marginLeft: "auto", marginRight: "auto" }}>
-          Paste a JD. CareerOS retrieves your most relevant projects using RAG, scores your ATS match, and generates a tailored CV and cover letter — in any language.
+          Paste a JD. KarriereOS retrieves your most relevant projects using RAG, scores your ATS match, and generates a tailored CV and cover letter — in any language.
         </p>
         <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
           <a href="/try" style={{ padding: "13px 28px", background: C.indigo, color: "#fff", borderRadius: "9px", fontSize: "14px", fontWeight: "700", textDecoration: "none", display: "inline-block" }}>
@@ -173,7 +173,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
+      {/* ── PRICING ── 
       <section id="pricing" style={{ maxWidth: "860px", margin: "0 auto", padding: "72px 40px" }}>
         <div style={{ textAlign: "center", marginBottom: "48px" }}>
           <div style={{ fontSize: "11px", fontWeight: "700", color: C.indigo, letterSpacing: "0.1em", marginBottom: "12px" }}>PRICING</div>
@@ -251,9 +251,9 @@ export default function Home() {
       <footer style={{ borderTop: `1px solid ${C.border}`, padding: "24px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ width: "22px", height: "22px", background: C.indigo, borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "11px", fontWeight: "800" }}>C</div>
-          <span style={{ fontSize: "13px", fontWeight: "600", color: C.slate }}>CareerOS</span>
+          <span style={{ fontSize: "13px", fontWeight: "600", color: C.slate }}>KarriereOS</span>
         </div>
-        <div style={{ fontSize: "12px", color: C.light }}>© 2026 CareerOS. Built with Claude API + ChromaDB.</div>
+        <div style={{ fontSize: "12px", color: C.light }}>© 2026 KarriereOS. All Right Reserved.</div>
       </footer>
     </div>
   );
