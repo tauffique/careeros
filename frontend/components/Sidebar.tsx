@@ -9,6 +9,7 @@ const NAV = [
   { href: "/apply",     label: "Apply",         icon: "✦" },
   { href: "/projects",  label: "Knowledge Base",icon: "◈" },
   { href: "/tracker",   label: "Tracker",       icon: "◎" },
+  { href: "/onboarding",label: "Profile Setup", icon: "◉" },
 ];
 
 export default function Sidebar() {
@@ -29,8 +30,8 @@ export default function Sidebar() {
             justifyContent: "center", color: "#fff", fontSize: "16px", fontWeight: "bold",
           }}>C</div>
           <div>
-            <div style={{ fontSize: "15px", fontWeight: "700", color: "#0F172A", letterSpacing: "-0.3px" }}>CareerOS</div>
-            <div style={{ fontSize: "10px", color: "#94A3B8", letterSpacing: "0.05em" }}>AI JOB PLATFORM</div>
+            <div style={{ fontSize: "15px", fontWeight: "700", color: "#0F172A", letterSpacing: "-0.3px" }}>KarriereOS</div>
+            <div style={{ fontSize: "10px", color: "#94A3B8", letterSpacing: "0.05em" }}>AI CAREER PLATFORM</div>
           </div>
         </div>
       </div>

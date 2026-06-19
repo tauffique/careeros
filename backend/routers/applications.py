@@ -30,7 +30,8 @@ class MatchRequest(BaseModel):
 
 class ATSRequest(BaseModel):
     application_id: str
-    stage: str = "before"   # "before" or "after"
+    stage: str = "before"
+    cv_text_override: str = ""  # optional direct CV text from frontend
 
 class GenerateRequest(BaseModel):
     application_id: str
@@ -123,10 +124,12 @@ async def ats_score(req: ATSRequest, clerk_id: str = Depends(get_current_user), 
     cv_text = " ".join([f"{p.title} {p.description} {' '.join(p.stack or [])}" for p in projects])
     # Also include skills if available
     try:
-        if user.skills_text:
+        if hasattr(user, 'skills_text') and user.skills_text:
             cv_text += " " + user.skills_text
     except Exception:
         pass
+
+    print(f"ATS scoring: {len(projects)} projects, cv_text length: {len(cv_text)}, stage: {req.stage}")
 
     latex_text = app.generated_cv_latex or ""
     content_to_score = latex_text if req.stage == "after" and latex_text else cv_text

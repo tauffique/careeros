@@ -92,6 +92,7 @@ export default function KnowledgeBase() {
         setProfile(p => ({ ...p, ...profileData.user }));
         setEducation(profileData.education || []);
         setCerts(profileData.certifications || []);
+        if (profileData.user?.skills_text) setSkills(profileData.user.skills_text);
       }
       setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch {}
@@ -435,14 +436,19 @@ export default function KnowledgeBase() {
           <div style={{ fontSize: "12px", color: C.mid, marginTop: "8px", marginBottom: "16px" }}>These are included in your CV generation and ATS scoring.</div>
           <div style={{ textAlign: "right" }}>
             <button onClick={async () => {
-              setSaving(true);
+              setSaving(true); setError(""); setSuccess("");
               try {
-                await api(`/users/me?email=${encodeURIComponent(profile.email)}`, "POST", { ...profile, skills_text: skills });
-                setSuccess("Skills saved!");
+                const token = await getToken();
+                const res = await fetch(`${BACKEND}/users/me?email=${encodeURIComponent(profile.email || "noemail@careeros.app")}`, {
+                  method: "POST",
+                  headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+                  body: JSON.stringify({ skills_text: skills }),
+                });
+                if (!res.ok) throw new Error("Failed to save skills");
+                setSuccess("Skills saved! ATS scoring will now use these skills.");
               } catch (e: any) { setError(e.message); }
               finally { setSaving(false); }
-            }} disabled={saving} style={btn(true)}>{saving ? "Saving..." : "Save Skills"}</button>
-          </div>
+            }} disabled={saving} style={btn(true)}>{saving ? "Saving..." : "Save Skills"}</button>          </div>
         </div>
       )}
 
