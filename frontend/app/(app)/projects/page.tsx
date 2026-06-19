@@ -102,9 +102,10 @@ export default function KnowledgeBase() {
   // ── CV Upload ──────────────────────────────────────────────────────────────
   async function handleCVUpload(file: File) {
     if (!file || file.type !== "application/pdf") { setError("Please upload a PDF"); return; }
-    setUploading(true); setUploadMsg("Extracting your CV..."); setError("");
+    setUploading(true); setUploadMsg("Reading your CV... (10-15 seconds)"); setError(""); setSuccess("");
     try {
       const base64 = await toBase64(file);
+      setUploadMsg("Extracting details with AI...");
       const res = await fetch(`${BACKEND}/try/extract-cv`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pdf_base64: base64 }),
@@ -114,52 +115,26 @@ export default function KnowledgeBase() {
 
       setUploadMsg("Saving to your knowledge base...");
 
-      // Save profile
+      // Use bulk import endpoint — clears duplicates automatically
       const token = await getToken();
-      await fetch(`${BACKEND}/users/me?email=${encodeURIComponent(data.email || profile.email)}`, {
+      await fetch(`${BACKEND}/users/me/import-cv`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: data.full_name || "",
-          phone: data.phone || "",
-          address: data.address || "",
-          linkedin_url: data.linkedin_url || "",
-          github_url: data.github_url || "",
-          portfolio_url: data.portfolio_url || "",
-        }),
+        body: JSON.stringify(data),
       });
 
-      // Save education
-      for (const e of (data.education || [])) {
-        await fetch(`${BACKEND}/users/me/education`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(e),
-        });
+      // Save projects (clear existing first)
+      const existingProjects = await api("/projects/");
+      for (const p of (Array.isArray(existingProjects) ? existingProjects : [])) {
+        await api(`/projects/${p.id}`, "DELETE");
       }
-
-      // Save certifications
-      for (const c of (data.certifications || [])) {
-        await fetch(`${BACKEND}/users/me/certifications`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(c),
-        });
-      }
-
-      // Save projects
       for (const p of (data.projects || [])) {
-        await fetch(`${BACKEND}/projects/`, {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-          body: JSON.stringify(p),
-        });
+        await api("/projects/", "POST", p);
       }
 
-      // Save skills
       if (data.skills?.length) setSkills(data.skills.join(", "));
 
-      setSuccess("CV imported successfully! Review your data below.");
+      setSuccess(`CV imported! Found ${data.projects?.length || 0} projects, ${data.education?.length || 0} education entries, ${data.certifications?.length || 0} certifications.`);
       await loadAll();
     } catch (e: any) { setError(e.message); }
     finally { setUploading(false); setUploadMsg(""); }

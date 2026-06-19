@@ -74,6 +74,7 @@ export default function ApplyPage() {
   const [atsAfter, setAtsAfter] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"cv" | "cl">("cv");
   const [copied, setCopied] = useState("");
+  const [downloading, setDownloading] = useState(false);
 
   async function authFetch(path: string, body: any) {
     const token = await getToken();
@@ -89,7 +90,7 @@ export default function ApplyPage() {
 
   // Step 1 — auto extract meta on JD blur
   async function extractMeta() {
-    if (!jd.trim() || (company && role)) return;
+    if (!jd.trim()) return;
     try {
       const token = await getToken();
       const res = await fetch(`${BACKEND}/applications/extract-meta`, {
@@ -102,7 +103,7 @@ export default function ApplyPage() {
         if (data.company_name && !company) setCompany(data.company_name);
         if (data.role_title && !role) setRole(data.role_title);
       }
-    } catch {}
+    } catch {} // silent fail — not critical
   }
 
   // Step 2 — ATS score before matching
@@ -162,6 +163,28 @@ export default function ApplyPage() {
   function copy(text: string, key: string) {
     navigator.clipboard.writeText(text);
     setCopied(key); setTimeout(() => setCopied(""), 2000);
+  }
+
+  async function downloadPDF(latex: string, filename: string) {
+    setDownloading(true);
+    try {
+      const token = await getToken();
+      const res = await fetch(`${BACKEND}/export/pdf`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ latex, filename }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || "PDF export failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `${filename}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) { setError(e.message); }
+    finally { setDownloading(false); }
   }
 
   function reset() {
@@ -228,12 +251,12 @@ export default function ApplyPage() {
 
           {/* Step 1 — JD Input */}
           <div style={{ background: C.white, border: `1px solid ${C.border}`, borderRadius: "12px", padding: "24px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
-            <SectionHeader title="Job Description" subtitle="Paste the full JD — company and role auto-detected on blur" />
-            <textarea value={jd} onChange={e => setJd(e.target.value)} onBlur={extractMeta}
+            <SectionHeader title="Job Description" subtitle="Paste the full JD then click Auto-detect to fill company and role" />
+            <textarea value={jd} onChange={e => setJd(e.target.value)}
               disabled={stage !== "input"}
               placeholder="Paste the full job description here..."
               style={{ ...inp, height: stage === "input" ? "200px" : "120px", resize: "vertical", opacity: stage !== "input" ? 0.6 : 1 } as any} />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "12px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto 1fr", gap: "12px", marginTop: "12px" }}>
               <div>
                 <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Company</label>
                 <input style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={company} onChange={e => setCompany(e.target.value)} placeholder="Auto-detected" disabled={stage !== "input"} />
@@ -242,6 +265,14 @@ export default function ApplyPage() {
                 <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Role</label>
                 <input style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={role} onChange={e => setRole(e.target.value)} placeholder="Auto-detected" disabled={stage !== "input"} />
               </div>
+              {stage === "input" && (
+                <div style={{ display: "flex", alignItems: "flex-end" }}>
+                  <button onClick={extractMeta} disabled={!jd.trim()}
+                    style={{ padding: "9px 12px", background: C.indigoLight, color: C.indigo, border: `1px solid #C7D2FE`, borderRadius: "8px", fontSize: "12px", fontWeight: "600", cursor: !jd.trim() ? "not-allowed" : "pointer", whiteSpace: "nowrap" }}>
+                    Auto-detect →
+                  </button>
+                </div>
+              )}
               <div>
                 <label style={{ fontSize: "10px", fontWeight: "700", color: C.mid, textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: "5px" }}>Output Language</label>
                 <select style={{ ...inp, opacity: stage !== "input" ? 0.6 : 1 }} value={language} onChange={e => setLanguage(e.target.value)} disabled={stage !== "input"}>
@@ -313,6 +344,12 @@ export default function ApplyPage() {
                 <button onClick={() => copy(activeTab === "cv" ? cvLatex : clLatex, activeTab)}
                   style={{ fontSize: "12px", color: copied === activeTab ? C.green : C.mid, background: "none", border: "none", cursor: "pointer", fontWeight: "600" }}>
                   {copied === activeTab ? "Copied ✓" : "Copy LaTeX →"}
+                </button>
+                <button
+                  onClick={() => downloadPDF(activeTab === "cv" ? cvLatex : clLatex, activeTab === "cv" ? `CV_${company || "careeros"}` : `CoverLetter_${company || "careeros"}`)}
+                  disabled={downloading}
+                  style={{ fontSize: "12px", padding: "5px 12px", background: downloading ? C.border : C.indigo, color: downloading ? C.light : "#fff", border: "none", borderRadius: "6px", cursor: downloading ? "not-allowed" : "pointer", fontWeight: "600" }}>
+                  {downloading ? "Exporting..." : "⬇ Download PDF"}
                 </button>
                 <a href="https://www.overleaf.com/project" target="_blank" rel="noopener noreferrer"
                   style={{ fontSize: "12px", color: C.mid, textDecoration: "none" }}>Open Overleaf ↗</a>
