@@ -75,7 +75,7 @@ export default function Home() {
       {/* ── NAV ── */}
       <nav style={{ position: "sticky", top: 0, zIndex: 50, background: "rgba(248,250,252,0.9)", backdropFilter: "blur(8px)", borderBottom: `1px solid ${C.border}`, padding: "0 40px", height: "60px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <div style={{ width: "28px", height: "28px", background: C.indigo, borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "14px", fontWeight: "800" }}>C</div>
+          <div style={{ width: "28px", height: "28px", background: C.indigo, borderRadius: "7px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "14px", fontWeight: "800" }}>K</div>
           <span style={{ fontSize: "15px", fontWeight: "700", color: C.slate }}>KarriereOS</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
