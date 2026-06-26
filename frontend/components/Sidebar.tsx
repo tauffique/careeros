@@ -27,7 +27,7 @@ export default function Sidebar() {
             width: "32px", height: "32px", background: "#4F46E5",
             borderRadius: "8px", display: "flex", alignItems: "center",
             justifyContent: "center", color: "#fff", fontSize: "16px", fontWeight: "bold",
-          }}>C</div>
+          }}>K</div>
           <div>
             <div style={{ fontSize: "15px", fontWeight: "700", color: "#0F172A", letterSpacing: "-0.3px" }}>KarriereOS</div>
             <div style={{ fontSize: "10px", color: "#94A3B8", letterSpacing: "0.05em" }}>AI CAREER PLATFORM</div>
