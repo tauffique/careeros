@@ -113,7 +113,7 @@ export default function Home() {
             </button>
           </SignUpButton>
         </div>
-        <p style={{ fontSize: "12px", color: C.light, marginTop: "16px" }}>No credit card required · 1 free application without signup</p>
+        <p style={{ fontSize: "12px", color: C.light, marginTop: "16px" }}> </p>
       </section>
 
       {/* ── STATS ── */}
