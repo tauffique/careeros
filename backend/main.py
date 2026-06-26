@@ -7,6 +7,12 @@ from dotenv import load_dotenv
 from routers import users, projects, applications
 from routers.try_router import router as try_router
 from routers.export import router as export_router
+import os
+origins = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # keep * for now
+)
 
 load_dotenv()
 
