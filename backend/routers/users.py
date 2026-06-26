@@ -60,7 +60,7 @@ async def get_profile(clerk_id: str = Depends(get_current_user), db: AsyncSessio
             "linkedin_url": user.linkedin_url, "github_url": user.github_url,
             "portfolio_url": user.portfolio_url,
             "ui_language": user.ui_language, "output_language": user.output_language,
-            "skills_text": getattr(user, "skills_text", None),
+            "skills_text": user.skills_text,
         },
         "education": [{"id": str(e.id), "institution": e.institution, "degree": e.degree,
                        "field": e.field, "location": e.location, "start_date": e.start_date,
@@ -107,6 +107,18 @@ async def add_certification(cert: CertificationCreate, clerk_id: str = Depends(g
 
 from sqlalchemy import delete as sql_delete
 
+@router.post("/me/skills")
+async def update_skills(data: dict, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
+    """Update skills_text directly — no email needed."""
+    result = await db.execute(select(User).where(User.clerk_id == clerk_id))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.skills_text = data.get("skills_text", "")
+    await db.commit()
+    return {"status": "ok"}
+
+
 @router.post("/me/import-cv")
 async def import_cv(data: dict, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     """Bulk import from CV upload — clears existing education and certs first to avoid duplicates."""
@@ -124,8 +136,8 @@ async def import_cv(data: dict, clerk_id: str = Depends(get_current_user), db: A
         await db.commit()
         await db.refresh(user)
 
-    # Update profile
-    for field in ["full_name", "email", "phone", "address", "linkedin_url", "github_url", "portfolio_url"]:
+    # Update profile — skip email to avoid unique constraint violations
+    for field in ["full_name", "phone", "address", "linkedin_url", "github_url", "portfolio_url"]:
         if data.get(field):
             setattr(user, field, data[field])
 
@@ -182,14 +194,3 @@ async def _get_user(clerk_id: str, db: AsyncSession) -> User:
     if not user:
         raise HTTPException(status_code=404, detail="User not found — complete onboarding first")
     return user
-
-@router.post("/me/skills")
-async def update_skills(data: dict, clerk_id: str = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    """Update skills_text directly."""
-    result = await db.execute(select(User).where(User.clerk_id == clerk_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    user.skills_text = data.get("skills_text", "")
-    await db.commit()
-    return {"status": "ok"}
