@@ -238,7 +238,7 @@ export default function Home() {
       {/* ── CTA ── */}
       <section style={{ maxWidth: "860px", margin: "0 auto", padding: "72px 40px", textAlign: "center" }}>
         <h2 style={{ fontSize: "36px", fontWeight: "800", color: C.slate, margin: "0 0 16px", letterSpacing: "-0.5px" }}>Ready to apply smarter?</h2>
-        <p style={{ fontSize: "15px", color: C.mid, margin: "0 0 32px" }}>Try one application free — no account, no credit card.</p>
+        {/*<p style={{ fontSize: "15px", color: C.mid, margin: "0 0 32px" }}>Try one application free — no account, no credit card.</p>*/}
         <div style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
           <a href="/try" style={{ padding: "13px 32px", background: C.indigo, color: "#fff", borderRadius: "9px", fontSize: "14px", fontWeight: "700", textDecoration: "none" }}>Try Free Now →</a>
           <SignUpButton mode="modal">
