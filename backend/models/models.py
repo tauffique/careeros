@@ -20,6 +20,7 @@ class User(Base):
     portfolio_url = Column(String(500))
     ui_language = Column(String(10), default="en")
     output_language = Column(String(50), default="English")
+    skills_text = Column(Text, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
 
@@ -76,6 +77,7 @@ class Application(Base):
     generated_cv_latex = Column(Text)
     generated_cl_latex = Column(Text)
     output_language = Column(String(50), default="English")
+    skills_text = Column(Text, nullable=True)
     status = Column(String(50), default="draft")
     applied_at = Column(TIMESTAMP(timezone=True))
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
