@@ -17,6 +17,8 @@ export default function ApplyPage(){
   const BACKEND=process.env.NEXT_PUBLIC_BACKEND_URL||"http://localhost:8000";
   const saved=typeof window!=="undefined"?loadSession(user?.id):null;
   const [jd,setJd]=useState(saved?.jd||"");
+  const [company,setCompany]=useState(saved?.company||"");
+  const [role,setRole]=useState(saved?.role||"");
   const [language,setLanguage]=useState(saved?.language||"English");
   const [stage,setStage]=useState<Stage>((saved?.stage as Stage)||"input");
   const [loading,setLoading]=useState(false);
@@ -31,8 +33,8 @@ export default function ApplyPage(){
   const [activeTab,setActiveTab]=useState<"cv"|"cl">("cv");
   const [copied,setCopied]=useState("");
   useEffect(()=>{
-    saveSession({userId:user?.id,jd,language,stage,applicationId,atsBefore,matchResult,cvLatex,clLatex,atsAfter});
-  },[user?.id,jd,language,stage,applicationId,atsBefore,matchResult,cvLatex,clLatex,atsAfter]);
+    saveSession({userId:user?.id,jd,company,role,language,stage,applicationId,atsBefore,matchResult,cvLatex,clLatex,atsAfter});
+  },[user?.id,jd,company,role,language,stage,applicationId,atsBefore,matchResult,cvLatex,clLatex,atsAfter]);
   async function authFetch(path:string,body:any){
     const token=await getToken();
     const res=await fetch(`${BACKEND}${path}`,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -44,7 +46,7 @@ export default function ApplyPage(){
     if(!jd.trim())return;
     setLoading(true);setError("");
     try{
-      const matchData=await authFetch("/applications/match",{job_description:jd,company:"",role:"",n_results:3});
+      const matchData=await authFetch("/applications/match",{job_description:jd,company,role,n_results:3});
       setApplicationId(matchData.application_id);setMatchResult(matchData);
       const atsData=await authFetch("/applications/ats-score",{application_id:matchData.application_id,stage:"before"});
       setAtsBefore(atsData);setStage("ats_before");
@@ -72,7 +74,7 @@ export default function ApplyPage(){
   }
   function copy(text:string,key:string){navigator.clipboard.writeText(text);setCopied(key);setTimeout(()=>setCopied(""),2000);}
   function reset(){
-    setJd("");setLanguage("English");setStage("input");
+    setJd("");setCompany("");setRole("");setLanguage("English");setStage("input");
     setApplicationId("");setAtsBefore(null);setMatchResult(null);
     setCvLatex("");setClLatex("");setAtsAfter(null);setError("");
     try{sessionStorage.removeItem("apply_state");}catch{}
@@ -109,11 +111,21 @@ export default function ApplyPage(){
             <textarea value={jd} onChange={e=>setJd(e.target.value)} disabled={stage!=="input"}
               placeholder="Paste the full job description here..."
               style={{...inp,height:stage==="input"?"200px":"120px",resize:"vertical",opacity:stage!=="input"?0.6:1} as any}/>
-            <div style={{marginTop:"12px"}}>
-              <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Output Language</label>
-              <select style={{...inp,maxWidth:"200px",opacity:stage!=="input"?0.6:1}} value={language} onChange={e=>setLanguage(e.target.value)} disabled={stage!=="input"}>
-                {LANGUAGES.map(l=><option key={l}>{l}</option>)}
-              </select>
+            <div style={{marginTop:"12px",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px"}}>
+              <div>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Company <span style={{fontWeight:"400",color:C.light}}>(optional)</span></label>
+                <input style={{...inp,opacity:stage!=="input"?0.6:1}} value={company} onChange={e=>setCompany(e.target.value)} placeholder="e.g. disruptive GmbH" disabled={stage!=="input"}/>
+              </div>
+              <div>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Role <span style={{fontWeight:"400",color:C.light}}>(optional)</span></label>
+                <input style={{...inp,opacity:stage!=="input"?0.6:1}} value={role} onChange={e=>setRole(e.target.value)} placeholder="e.g. AI Engineering Intern" disabled={stage!=="input"}/>
+              </div>
+              <div>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Output Language</label>
+                <select style={{...inp,opacity:stage!=="input"?0.6:1}} value={language} onChange={e=>setLanguage(e.target.value)} disabled={stage!=="input"}>
+                  {LANGUAGES.map(l=><option key={l}>{l}</option>)}
+                </select>
+              </div>
             </div>
             {error&&<div style={{marginTop:"12px",padding:"10px 14px",background:C.redLight,border:"1px solid #FCA5A5",borderRadius:"8px",fontSize:"12px",color:C.red}}>{error}</div>}
             {stage==="input"&&<div style={{marginTop:"16px",textAlign:"right"}}>
