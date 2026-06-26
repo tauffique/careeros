@@ -206,7 +206,7 @@ export default function TryPage() {
       <nav style={{ background: C.white, borderBottom: `1px solid ${C.border}`, padding: "0 32px", height: "56px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <a href="/" style={{ display: "flex", alignItems: "center", gap: "8px", textDecoration: "none" }}>
           <div style={{ width: "26px", height: "26px", background: C.indigo, borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "13px", fontWeight: "800" }}>C</div>
-          <span style={{ fontSize: "14px", fontWeight: "700", color: C.slate }}>CareerOS</span>
+          <span style={{ fontSize: "14px", fontWeight: "700", color: C.slate }}>KarriereOS</span>
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontSize: "12px", color: C.light }}>Free trial · 1 application</span>
@@ -217,7 +217,7 @@ export default function TryPage() {
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "36px 24px" }}>
         {/* Header */}
         <div style={{ marginBottom: "24px" }}>
-          <h1 style={{ fontSize: "22px", fontWeight: "700", color: C.slate, margin: "0 0 4px" }}>Try CareerOS Free</h1>
+          <h1 style={{ fontSize: "22px", fontWeight: "700", color: C.slate, margin: "0 0 4px" }}>Try KarriereOS Free</h1>
           <p style={{ fontSize: "13px", color: C.mid, margin: 0 }}>Upload your CV — we extract everything. No account needed.</p>
         </div>
 

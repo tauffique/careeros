@@ -219,7 +219,7 @@ export default function Home() {
           </div>
           <div style={{ border: `1px solid ${C.border}`, borderRadius: "12px", overflow: "hidden" }}>
             <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", background: C.bg, padding: "12px 20px", borderBottom: `1px solid ${C.border}` }}>
-              {["Feature", "CareerOS", "Jobscan", "Rezi", "Teal"].map((h, i) => (
+              {["Feature", "KarriereOS", "Jobscan", "Rezi", "Teal"].map((h, i) => (
                 <div key={h} style={{ fontSize: "11px", fontWeight: "700", color: i === 1 ? C.indigo : C.light, textTransform: "uppercase", letterSpacing: "0.05em", textAlign: i > 0 ? "center" : "left" }}>{h}</div>
               ))}
             </div>
