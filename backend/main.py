@@ -1,22 +1,31 @@
 """
 main.py — CareerOS FastAPI backend
 """
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from dotenv import load_dotenv
 from routers import users, projects, applications
 from routers.try_router import router as try_router
 from routers.export import router as export_router
-import os
-origins = os.environ.get("ALLOWED_ORIGINS", "*").split(",")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # keep * for now
-)
 
 load_dotenv()
 
 app = FastAPI(title="CareerOS API", version="1.0.0")
+
+@app.middleware("http")
+async def cors_middleware(request: Request, call_next):
+    if request.method == "OPTIONS":
+        return Response(status_code=200, headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Methods": "*",
+        })
+    response = await call_next(request)
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    return response
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,13 +47,11 @@ def root():
 
 @app.on_event("startup")
 async def startup_reindex():
-    """Re-index all projects into ChromaDB from PostgreSQL on every startup."""
     try:
         from db.database import AsyncSessionLocal
         from models.models import Project
         from sqlalchemy import select
         from chromadb_client import upsert_project
-
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Project).where(Project.is_active == True))
             projects_list = result.scalars().all()
