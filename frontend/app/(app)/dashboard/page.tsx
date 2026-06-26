@@ -2,20 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 
 const C = { indigo: "#4F46E5", slate: "#0F172A", mid: "#64748B", light: "#94A3B8", bg: "#F8FAFC", white: "#fff", border: "#E2E8F0", green: "#10B981", amber: "#F59E0B", red: "#EF4444" };
 
 export default function Dashboard() {
   const { getToken } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState({ total: 0, applied: 0, interview: 0, offer: 0 });
   const [recent, setRecent] = useState<any[]>([]);
 
   useEffect(() => {
     async function load() {
       const token = await getToken();
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/applications/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
+      // Check if user has any projects — if not, redirect to onboarding
+      const projectsRes = await fetch(`${BACKEND}/projects/`, { headers: { Authorization: `Bearer ${token}` } });
+      if (projectsRes.ok) {
+        const projects = await projectsRes.json();
+        if (Array.isArray(projects) && projects.length === 0) {
+          // Check if they've seen onboarding before
+          const seen = sessionStorage.getItem("onboarding_seen");
+          if (!seen) {
+            sessionStorage.setItem("onboarding_seen", "true");
+            router.push("/onboarding");
+            return;
+          }
+        }
+      }
+
+      const res = await fetch(`${BACKEND}/applications/`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.ok) {
         const apps = await res.json();
         setRecent(apps.slice(0, 5));
