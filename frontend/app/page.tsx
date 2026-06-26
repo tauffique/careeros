@@ -250,7 +250,7 @@ export default function Home() {
       {/* ── FOOTER ── */}
       <footer style={{ borderTop: `1px solid ${C.border}`, padding: "24px 40px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div style={{ width: "22px", height: "22px", background: C.indigo, borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "11px", fontWeight: "800" }}>C</div>
+          <div style={{ width: "22px", height: "22px", background: C.indigo, borderRadius: "5px", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: "11px", fontWeight: "800" }}>K</div>
           <span style={{ fontSize: "13px", fontWeight: "600", color: C.slate }}>KarriereOS</span>
         </div>
         <div style={{ fontSize: "12px", color: C.light }}>© 2026 KarriereOS. All Right Reserved.</div>
