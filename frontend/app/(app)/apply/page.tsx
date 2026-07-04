@@ -15,6 +15,12 @@ export default function ApplyPage(){
   const {getToken}=useAuth();
   const {user}=useUser();
   const BACKEND=process.env.NEXT_PUBLIC_BACKEND_URL||"http://localhost:8000";
+  const [isMobile,setIsMobile]=useState(false);
+  useEffect(()=>{
+    const check=()=>setIsMobile(window.innerWidth<768);
+    check();window.addEventListener("resize",check);
+    return()=>window.removeEventListener("resize",check);
+  },[]);
   const saved=typeof window!=="undefined"?loadSession(user?.id):null;
   const [jd,setJd]=useState(saved?.jd||"");
   const [company,setCompany]=useState(saved?.company||"");
@@ -82,64 +88,65 @@ export default function ApplyPage(){
   const scoreDelta=atsBefore&&atsAfter?atsAfter.score-atsBefore.score:null;
   return(
     <div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"28px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px",flexWrap:"wrap",gap:"8px"}}>
         <div>
-          <h1 style={{fontSize:"22px",fontWeight:"700",color:C.slate,margin:0}}>Apply</h1>
-          <p style={{color:C.mid,fontSize:"13px",margin:"4px 0 0"}}>Paste a JD — KarriereOS retrieves your best projects and generates tailored documents</p>
+          <h1 style={{fontSize:isMobile?"18px":"22px",fontWeight:"700",color:C.slate,margin:0}}>Apply</h1>
+          <p style={{color:C.mid,fontSize:"13px",margin:"4px 0 0"}}>Paste a JD — KarriereOS retrieves your best projects</p>
         </div>
-        {stage!=="input"&&<button onClick={reset} style={{fontSize:"12px",color:C.mid,background:C.white,border:`1px solid ${C.border}`,borderRadius:"7px",padding:"7px 14px",cursor:"pointer"}}>↩ New Application</button>}
+        {stage!=="input"&&<button onClick={reset} style={{fontSize:"12px",color:C.mid,background:C.white,border:`1px solid ${C.border}`,borderRadius:"7px",padding:"7px 14px",cursor:"pointer"}}>↩ New</button>}
       </div>
-      <div style={{display:"flex",alignItems:"center",marginBottom:"28px"}}>
-        {[{key:"input",label:"JD Input"},{key:"ats_before",label:"ATS Before"},{key:"matched",label:"RAG Match"},{key:"generated",label:"Generate"},{key:"ats_after",label:"ATS After"}].map(({key,label},i)=>{
+      {/* Progress steps */}
+      <div style={{display:"flex",alignItems:"center",marginBottom:"20px"}}>
+        {[{key:"input",label:"JD"},{key:"ats_before",label:"ATS"},{key:"matched",label:"RAG"},{key:"generated",label:"Generate"},{key:"ats_after",label:"After"}].map(({key,label},i)=>{
           const stages:Stage[]=["input","ats_before","matched","generated","ats_after"];
           const current=stages.indexOf(stage);const idx=stages.indexOf(key as Stage);
           const done=current>idx;const active=current===idx;
           return(<div key={key} style={{display:"flex",alignItems:"center",flex:i<4?1:"none"}}>
-            <div style={{display:"flex",alignItems:"center",gap:"6px"}}>
-              <div style={{width:"24px",height:"24px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"11px",fontWeight:"700",background:done?C.green:active?C.indigo:C.border,color:done||active?"#fff":C.light,flexShrink:0}}>{done?"✓":i+1}</div>
-              <span style={{fontSize:"11px",fontWeight:active?"700":"500",color:active?C.slate:done?C.green:C.light,whiteSpace:"nowrap"}}>{label}</span>
+            <div style={{display:"flex",alignItems:"center",gap:"4px"}}>
+              <div style={{width:"22px",height:"22px",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"10px",fontWeight:"700",background:done?C.green:active?C.indigo:C.border,color:done||active?"#fff":C.light,flexShrink:0}}>{done?"✓":i+1}</div>
+              {!isMobile&&<span style={{fontSize:"10px",fontWeight:active?"700":"500",color:active?C.slate:done?C.green:C.light,whiteSpace:"nowrap"}}>{label}</span>}
             </div>
-            {i<4&&<div style={{flex:1,height:"1px",background:done?C.green:C.border,margin:"0 8px"}}/>}
+            {i<4&&<div style={{flex:1,height:"1px",background:done?C.green:C.border,margin:"0 4px"}}/>}
           </div>);
         })}
       </div>
-      <div style={{display:"grid",gridTemplateColumns:stage==="input"?"1fr":"1fr 340px",gap:"20px",alignItems:"start"}}>
+      <div style={{display:"grid",gridTemplateColumns:stage==="input"?"1fr":isMobile?"1fr":"1fr 340px",gap:"16px",alignItems:"start"}}>
         <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
-          <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"24px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-            <h2 style={{fontSize:"15px",fontWeight:"700",color:C.slate,margin:"0 0 4px"}}>Job Description</h2>
-            <p style={{fontSize:"12px",color:C.mid,margin:"0 0 16px"}}>Paste the full JD below</p>
+          <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:isMobile?"16px":"24px"}}>
+            <h2 style={{fontSize:"14px",fontWeight:"700",color:C.slate,margin:"0 0 4px"}}>Job Description</h2>
+            <p style={{fontSize:"12px",color:C.mid,margin:"0 0 12px"}}>Paste the full JD below</p>
             <textarea value={jd} onChange={e=>setJd(e.target.value)} disabled={stage!=="input"}
               placeholder="Paste the full job description here..."
-              style={{...inp,height:stage==="input"?"200px":"120px",resize:"vertical",opacity:stage!=="input"?0.6:1} as any}/>
-            <div style={{marginTop:"12px",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"12px"}}>
+              style={{...inp,height:stage==="input"?"180px":"100px",resize:"vertical",opacity:stage!=="input"?0.6:1} as any}/>
+            <div style={{marginTop:"12px",display:"grid",gridTemplateColumns:isMobile?"1fr":"1fr 1fr 1fr",gap:"10px"}}>
               <div>
-                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Company <span style={{fontWeight:"400",color:C.light}}>(optional)</span></label>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"4px"}}>Company</label>
                 <input style={{...inp,opacity:stage!=="input"?0.6:1}} value={company} onChange={e=>setCompany(e.target.value)} placeholder="e.g. disruptive GmbH" disabled={stage!=="input"}/>
               </div>
               <div>
-                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Role <span style={{fontWeight:"400",color:C.light}}>(optional)</span></label>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"4px"}}>Role</label>
                 <input style={{...inp,opacity:stage!=="input"?0.6:1}} value={role} onChange={e=>setRole(e.target.value)} placeholder="e.g. AI Engineering Intern" disabled={stage!=="input"}/>
               </div>
               <div>
-                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"5px"}}>Output Language</label>
+                <label style={{fontSize:"10px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",display:"block",marginBottom:"4px"}}>Language</label>
                 <select style={{...inp,opacity:stage!=="input"?0.6:1}} value={language} onChange={e=>setLanguage(e.target.value)} disabled={stage!=="input"}>
                   {LANGUAGES.map(l=><option key={l}>{l}</option>)}
                 </select>
               </div>
             </div>
             {error&&<div style={{marginTop:"12px",padding:"10px 14px",background:C.redLight,border:"1px solid #FCA5A5",borderRadius:"8px",fontSize:"12px",color:C.red}}>{error}</div>}
-            {stage==="input"&&<div style={{marginTop:"16px",textAlign:"right"}}>
+            {stage==="input"&&<div style={{marginTop:"14px",textAlign:"right"}}>
               <button onClick={runAtsBefore} disabled={loading||!jd.trim()}
-                style={{padding:"10px 24px",background:loading||!jd.trim()?C.border:C.indigo,color:loading||!jd.trim()?C.light:"#fff",border:"none",borderRadius:"8px",fontSize:"13px",fontWeight:"700",cursor:loading||!jd.trim()?"not-allowed":"pointer"}}>
+                style={{padding:"10px 24px",background:loading||!jd.trim()?C.border:C.indigo,color:loading||!jd.trim()?C.light:"#fff",border:"none",borderRadius:"8px",fontSize:"13px",fontWeight:"700",cursor:loading||!jd.trim()?"not-allowed":"pointer",width:isMobile?"100%":"auto"}}>
                 {loading?"Analysing...":"Analyse JD →"}
               </button>
             </div>}
           </div>
           {matchResult&&(
-            <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"24px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-              <h2 style={{fontSize:"15px",fontWeight:"700",color:C.slate,margin:"0 0 4px"}}>RAG Match Results</h2>
-              <p style={{fontSize:"12px",color:C.mid,margin:"0 0 16px"}}>Top {matchResult.retrieved_projects?.length} projects retrieved</p>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:"10px",marginBottom:"20px"}}>
+            <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:isMobile?"16px":"24px"}}>
+              <h2 style={{fontSize:"14px",fontWeight:"700",color:C.slate,margin:"0 0 4px"}}>RAG Match Results</h2>
+              <p style={{fontSize:"12px",color:C.mid,margin:"0 0 14px"}}>Top {matchResult.retrieved_projects?.length} projects retrieved</p>
+              <div style={{display:"grid",gridTemplateColumns:isMobile?"1fr":"repeat(3,1fr)",gap:"10px",marginBottom:"16px"}}>
                 {matchResult.retrieved_projects?.map((p:any,i:number)=>(
                   <div key={p.id} style={{background:C.bg,border:`1px solid ${C.border}`,borderRadius:"8px",padding:"12px"}}>
                     <div style={{display:"flex",justifyContent:"space-between"}}>
@@ -151,10 +158,10 @@ export default function ApplyPage(){
                   </div>
                 ))}
               </div>
-              <pre style={{fontSize:"12px",color:C.mid,whiteSpace:"pre-wrap",lineHeight:"1.6",fontFamily:"monospace",margin:"0 0 20px",background:C.bg,padding:"16px",borderRadius:"8px",border:`1px solid ${C.border}`,maxHeight:"300px",overflowY:"auto"}}>
+              <pre style={{fontSize:"12px",color:C.mid,whiteSpace:"pre-wrap",lineHeight:"1.6",fontFamily:"monospace",margin:"0 0 16px",background:C.bg,padding:"14px",borderRadius:"8px",border:`1px solid ${C.border}`,maxHeight:"260px",overflowY:"auto"}}>
                 {matchResult.tailored_output}
               </pre>
-              <div style={{display:"flex",gap:"10px",justifyContent:"flex-end"}}>
+              <div style={{display:"flex",gap:"10px",justifyContent:"flex-end",flexDirection:isMobile?"column":"row" as any}}>
                 <button onClick={()=>generate("cv")} disabled={genLoading!==null}
                   style={{padding:"9px 20px",background:genLoading==="cv"?C.border:C.indigo,color:genLoading==="cv"?C.light:"#fff",border:"none",borderRadius:"8px",fontSize:"13px",fontWeight:"700",cursor:genLoading!==null?"not-allowed":"pointer"}}>
                   {genLoading==="cv"?"Generating...":"📄 Generate CV"}
@@ -167,21 +174,21 @@ export default function ApplyPage(){
             </div>
           )}
           {(cvLatex||clLatex)&&(
-            <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"24px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-              <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"16px"}}>
-                {cvLatex&&<button onClick={()=>setActiveTab("cv")} style={{padding:"6px 14px",borderRadius:"6px",border:`1px solid ${activeTab==="cv"?C.indigo:C.border}`,background:activeTab==="cv"?C.indigoLight:C.white,color:activeTab==="cv"?C.indigo:C.mid,fontSize:"12px",fontWeight:"600",cursor:"pointer"}}>📄 CV</button>}
-                {clLatex&&<button onClick={()=>setActiveTab("cl")} style={{padding:"6px 14px",borderRadius:"6px",border:`1px solid ${activeTab==="cl"?C.indigo:C.border}`,background:activeTab==="cl"?C.indigoLight:C.white,color:activeTab==="cl"?C.indigo:C.mid,fontSize:"12px",fontWeight:"600",cursor:"pointer"}}>✉️ Cover Letter</button>}
+            <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:isMobile?"16px":"24px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:"8px",marginBottom:"14px",flexWrap:"wrap"}}>
+                {cvLatex&&<button onClick={()=>setActiveTab("cv")} style={{padding:"6px 12px",borderRadius:"6px",border:`1px solid ${activeTab==="cv"?C.indigo:C.border}`,background:activeTab==="cv"?C.indigoLight:C.white,color:activeTab==="cv"?C.indigo:C.mid,fontSize:"12px",fontWeight:"600",cursor:"pointer"}}>📄 CV</button>}
+                {clLatex&&<button onClick={()=>setActiveTab("cl")} style={{padding:"6px 12px",borderRadius:"6px",border:`1px solid ${activeTab==="cl"?C.indigo:C.border}`,background:activeTab==="cl"?C.indigoLight:C.white,color:activeTab==="cl"?C.indigo:C.mid,fontSize:"12px",fontWeight:"600",cursor:"pointer"}}>✉️ Cover Letter</button>}
                 <div style={{flex:1}}/>
                 <button onClick={()=>copy(activeTab==="cv"?cvLatex:clLatex,activeTab)} style={{fontSize:"12px",color:copied===activeTab?C.green:C.mid,background:"none",border:"none",cursor:"pointer",fontWeight:"600"}}>
                   {copied===activeTab?"Copied ✓":"Copy LaTeX →"}
                 </button>
-                <a href="https://www.overleaf.com/project" target="_blank" rel="noopener noreferrer" style={{fontSize:"12px",color:C.mid,textDecoration:"none"}}>Open Overleaf ↗</a>
+                <a href="https://www.overleaf.com/project" target="_blank" rel="noopener noreferrer" style={{fontSize:"12px",color:C.mid,textDecoration:"none"}}>Overleaf ↗</a>
               </div>
-              <pre style={{fontSize:"11px",color:C.mid,whiteSpace:"pre-wrap",lineHeight:"1.5",fontFamily:"monospace",margin:0,background:C.bg,padding:"16px",borderRadius:"8px",border:`1px solid ${C.border}`,maxHeight:"360px",overflowY:"auto"}}>
+              <pre style={{fontSize:"11px",color:C.mid,whiteSpace:"pre-wrap",lineHeight:"1.5",fontFamily:"monospace",margin:0,background:C.bg,padding:"14px",borderRadius:"8px",border:`1px solid ${C.border}`,maxHeight:"300px",overflowY:"auto"}}>
                 {activeTab==="cv"?cvLatex:clLatex}
               </pre>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:"12px"}}>
-                <p style={{fontSize:"11px",color:C.light,margin:0}}>Copy → Overleaf → New Project → Blank → paste → Compile</p>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:"12px",flexWrap:"wrap",gap:"8px"}}>
+                <p style={{fontSize:"11px",color:C.light,margin:0}}>Copy → Overleaf → Blank → paste → Compile</p>
                 {!atsAfter&&<button onClick={runAtsAfter} disabled={loading} style={{padding:"7px 16px",background:C.indigo,color:"#fff",border:"none",borderRadius:"7px",fontSize:"12px",fontWeight:"700",cursor:loading?"not-allowed":"pointer"}}>{loading?"Scoring...":"Score ATS After →"}</button>}
               </div>
             </div>
@@ -190,36 +197,36 @@ export default function ApplyPage(){
         {stage!=="input"&&(
           <div style={{display:"flex",flexDirection:"column",gap:"16px"}}>
             {atsBefore&&(
-              <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"20px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-                <div style={{fontSize:"11px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"14px"}}>ATS Score — Before</div>
+              <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"18px"}}>
+                <div style={{fontSize:"11px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"12px"}}>ATS Score — Before</div>
                 <ATSBar score={atsBefore.score} label="Current match"/>
-                {atsBefore.matched_keywords?.length>0&&(<div style={{marginBottom:"12px"}}>
-                  <div style={{fontSize:"11px",fontWeight:"600",color:C.green,marginBottom:"6px"}}>✓ Matched</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsBefore.matched_keywords.slice(0,8).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.greenLight,color:C.green,padding:"2px 8px",borderRadius:"20px"}}>{kw}</span>)}</div>
+                {atsBefore.matched_keywords?.length>0&&(<div style={{marginBottom:"10px"}}>
+                  <div style={{fontSize:"11px",fontWeight:"600",color:C.green,marginBottom:"5px"}}>✓ Matched</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsBefore.matched_keywords.slice(0,8).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.greenLight,color:C.green,padding:"2px 7px",borderRadius:"20px"}}>{kw}</span>)}</div>
                 </div>)}
                 {atsBefore.missing_keywords?.length>0&&(<div>
-                  <div style={{fontSize:"11px",fontWeight:"600",color:C.red,marginBottom:"6px"}}>✗ Missing</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsBefore.missing_keywords.slice(0,8).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.redLight,color:C.red,padding:"2px 8px",borderRadius:"20px"}}>{kw}</span>)}</div>
+                  <div style={{fontSize:"11px",fontWeight:"600",color:C.red,marginBottom:"5px"}}>✗ Missing</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsBefore.missing_keywords.slice(0,8).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.redLight,color:C.red,padding:"2px 7px",borderRadius:"20px"}}>{kw}</span>)}</div>
                 </div>)}
               </div>
             )}
             {atsAfter&&(
-              <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"20px",boxShadow:"0 1px 3px rgba(0,0,0,0.04)"}}>
-                <div style={{fontSize:"11px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"14px"}}>ATS Score — After</div>
+              <div style={{background:C.white,border:`1px solid ${C.border}`,borderRadius:"12px",padding:"18px"}}>
+                <div style={{fontSize:"11px",fontWeight:"700",color:C.mid,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"12px"}}>ATS Score — After</div>
                 <ATSBar score={atsAfter.score} label="After tailoring"/>
-                {scoreDelta!==null&&(<div style={{background:scoreDelta>0?C.greenLight:C.redLight,border:`1px solid ${scoreDelta>0?"#86EFAC":"#FCA5A5"}`,borderRadius:"8px",padding:"10px 14px",marginBottom:"12px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                {scoreDelta!==null&&(<div style={{background:scoreDelta>0?C.greenLight:C.redLight,border:`1px solid ${scoreDelta>0?"#86EFAC":"#FCA5A5"}`,borderRadius:"8px",padding:"10px 12px",marginBottom:"10px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <span style={{fontSize:"12px",color:scoreDelta>0?C.green:C.red,fontWeight:"600"}}>{scoreDelta>0?"↑":"↓"} {Math.abs(scoreDelta)} pts</span>
-                  <span style={{fontSize:"18px",fontWeight:"800",color:scoreDelta>0?C.green:C.red}}>{atsBefore.score}% → {atsAfter.score}%</span>
+                  <span style={{fontSize:"16px",fontWeight:"800",color:scoreDelta>0?C.green:C.red}}>{atsBefore.score}%→{atsAfter.score}%</span>
                 </div>)}
                 {atsAfter.missing_keywords?.length>0&&(<div>
-                  <div style={{fontSize:"11px",fontWeight:"600",color:C.amber,marginBottom:"6px"}}>Still missing</div>
-                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsAfter.missing_keywords.slice(0,6).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.amberLight,color:C.amber,padding:"2px 8px",borderRadius:"20px"}}>{kw}</span>)}</div>
+                  <div style={{fontSize:"11px",fontWeight:"600",color:C.amber,marginBottom:"5px"}}>Still missing</div>
+                  <div style={{display:"flex",flexWrap:"wrap",gap:"4px"}}>{atsAfter.missing_keywords.slice(0,6).map((kw:string)=><span key={kw} style={{fontSize:"10px",background:C.amberLight,color:C.amber,padding:"2px 7px",borderRadius:"20px"}}>{kw}</span>)}</div>
                 </div>)}
               </div>
             )}
             {applicationId&&(<div style={{background:C.indigoLight,border:"1px solid #C7D2FE",borderRadius:"10px",padding:"14px 16px"}}>
               <div style={{fontSize:"12px",fontWeight:"700",color:C.indigo,marginBottom:"4px"}}>✦ Saved to tracker</div>
-              <div style={{fontSize:"11px",color:C.mid}}>This application is saved. Update its status in the Tracker.</div>
+              <div style={{fontSize:"11px",color:C.mid}}>Application saved. Update status in Tracker.</div>
               <a href="/tracker" style={{fontSize:"11px",color:C.indigo,textDecoration:"none",fontWeight:"600",display:"block",marginTop:"8px"}}>Go to Tracker →</a>
             </div>)}
           </div>
